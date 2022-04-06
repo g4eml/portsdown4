@@ -324,9 +324,9 @@ rfe_dev_t* rfe = NULL;    // handle for LimeRFE
 int RFEHWVer = -1;        // hardware version
 
 // QO-100 Transmit Freqs
-char QOFreq[10][31] = {"2405.25", "2405.75", "2406.25", "2406.75", "2407.25", "2407.75", "2408.25", "2408.75", "2409.25", "2409.75"};
-char QOFreqButts[10][31] = {"10494.75^2405.25", "10495.25^2405.75", "10495.75^2406.25", "10496.25^2406.75", "10496.75^2407.25", \
-                            "10497.25^2407.75", "10497.75^2408.25", "10498.25^2408.75", "10498.75^2409.25", "10499.25^2409.75"};
+char QOFreq[10][31] = {"435.25", "435.75", "436.25", "436.75", "437.25", "437.75", "438.25", "438.75", "439.25", "439.75"};
+char QOFreqButts[10][31] = {"10494.75^435.25", "10495.25^435.75", "10495.75^436.25", "10496.25^436.75", "10496.75^437.25", \
+                            "10497.25^437.75", "10497.75^438.25", "10498.25^438.75", "10498.75^439.25", "10499.25^439.75"};
 
 // Langstone Integration variables
 char StartApp[63];            // Startup app on boot
@@ -8301,6 +8301,15 @@ void DoFreqChange()
   LimeRFERXAtt = atoi(Value);
   strcpy(Param, "limerferxatt");
   SetConfigParam(PATH_PCONFIG ,Param, Value);
+  
+  if(LimeRFEState ==1)
+    {
+      LimeRFEInit();
+    }
+  else
+    {
+       LimeRFEClose();
+    }
 
   // Set the Band (and filter) Switching
   printf("CTLfilter called\n");
@@ -14962,40 +14971,43 @@ void LimeRFEInit()
   FILE *fp;
   char response[127];
 
-  // Don't initialise if not required
-  if(LimeRFEState == 0)
-  {
-    return;
+  if(rfe == NULL)             //don't do this if the port is already open
+   {
+      // Don't initialise if not required
+      if(LimeRFEState == 0)
+      {
+        return;
+      }
+    
+      // List the ttyUSBs (should return /dev/ttyUSB0)
+      fp = popen("ls --format=single-column /dev/ttyUSB*", "r");
+      if (fp == NULL)
+      {
+        printf("Failed to run command ls --format=single-column /dev/ttyUSB* \n" );
+        return;
+      }
+    
+      // Read the output a line at a time and see if it works
+      while ((fgets(response, 16, fp) != NULL)  && (rfe == NULL))
+      {
+        response[strcspn(response, "\n")] = 0;                 // strip off the trailing \n
+        printf("Attempting to open %s for LimeRFE\n", response);
+        rfe = RFE_Open(response, NULL);
+        if (rfe != NULL)
+        {
+          printf("RFE on %s opened\n", response);
+        }
+      }
+    
+      // Close the File
+      pclose(fp);
+    
+      if (rfe == NULL)
+      {
+        printf("Failed to Open LimeRFE for use\n");
+      }
   }
-
-  // List the ttyUSBs (should return /dev/ttyUSB0)
-  fp = popen("ls --format=single-column /dev/ttyUSB*", "r");
-  if (fp == NULL)
-  {
-    printf("Failed to run command ls --format=single-column /dev/ttyUSB* \n" );
-    return;
-  }
-
-  // Read the output a line at a time and see if it works
-  while ((fgets(response, 16, fp) != NULL)  && (rfe == NULL))
-  {
-    response[strcspn(response, "\n")] = 0;                 // strip off the trailing \n
-    printf("Attempting to open %s for LimeRFE\n", response);
-    rfe = RFE_Open(response, NULL);
-    if (rfe != NULL)
-    {
-      printf("RFE on %s opened\n", response);
-    }
-  }
-
-  // Close the File
-  pclose(fp);
-
-  if (rfe == NULL)
-  {
-    printf("Failed to Open LimeRFE for use\n");
-  }
-
+  
   int RFE_CID = 1;
   int RFE_PORT = 1; // Default TX output is TX/RX Port
 //  int RFE_PORT = 2; // Alternative TX output is TX Port
@@ -15017,7 +15029,7 @@ void LimeRFEInit()
     if (RealFreq <= 30)
     {
       RFE_CID = 2;      // HAM_0030
-      RFE_PORT = 3;     // 30 MHz output Port
+      RFE_PORT = 3;     // HF output Port
     }
     else if ((RealFreq > 30) && (RealFreq <= 140))
     {
@@ -15070,72 +15082,73 @@ void LimeRFEInit()
   }
   else                 // Production Version or unknown
   {
-    if (RealFreq <= 30)
+    if (RealFreq < 50)
     {
       RFE_CID = 3;      // HAM_0030
-      RFE_PORT = 3;     // 30 MHz output Port
+      RFE_PORT = 3;     // HF output Port
     }
-    else if ((RealFreq > 30) && (RealFreq <= 75))
+    else if ((RealFreq >= 50) && (RealFreq < 85))
     {
       RFE_CID = 4;      // HAM_0070
+      RFE_PORT = 3;     // HF output Port
     }
-    else if ((RealFreq > 75) && (RealFreq <= 140))
+    else if ((RealFreq >= 85) && (RealFreq < 140))
     {
       RFE_CID = 1;      // WB_1000
     }
-    else if ((RealFreq > 140) && (RealFreq <= 150))
+    else if ((RealFreq >= 140) && (RealFreq < 150))
     {
       RFE_CID = 5;      // HAM_0145
     }
-    else if ((RealFreq > 150) && (RealFreq <= 205))
+    else if ((RealFreq >= 150) && (RealFreq < 190))
     {
       RFE_CID = 1;      // WB_1000
     }
-    else if ((RealFreq > 205) && (RealFreq <= 215))
+    else if ((RealFreq >= 190) && (RealFreq <= 260))
     {
       RFE_CID = 6;      // HAM_0220
     }
-    else if ((RealFreq > 215) && (RealFreq <= 420))
+    else if ((RealFreq >= 260) && (RealFreq < 400))
     {
       RFE_CID = 1;      // WB_1000
     }
-    else if ((RealFreq > 420) && (RealFreq <= 450))
+    else if ((RealFreq >= 400) && (RealFreq < 500))
     {
       RFE_CID = 7;      // HAM_0435
     }
-    else if ((RealFreq > 450) && (RealFreq <= 910))
+    else if ((RealFreq >= 500) && (RealFreq < 900))
     {
       RFE_CID = 1;      // WB_1000
     }
-    else if ((RealFreq > 910) && (RealFreq <= 930))
+    else if ((RealFreq >= 900) && (RealFreq < 930))
     {
       RFE_CID = 8;      // HAM_0920
     }
-    else if ((RealFreq > 930) && (RealFreq <= 1000))
+    else if ((RealFreq >= 930) && (RealFreq < 1000))
     {
       RFE_CID = 1;      // WB_1000
     }
-    else if ((RealFreq > 1000) && (RealFreq <= 1230))
+    else if ((RealFreq >= 1000) && (RealFreq < 1200))
     {
       RFE_CID = 2;      // WB_4000
     }
-    else if ((RealFreq > 1230) && (RealFreq <= 1330))
+    else if ((RealFreq >= 1200) && (RealFreq < 1500))
     {
       RFE_CID = 9;      // HAM_1280
     }
-    else if ((RealFreq > 1330) && (RealFreq <= 2300))
+    else if ((RealFreq >= 1500) && (RealFreq < 2200))
     {
       RFE_CID = 2;      // WB_4000
     }
-    else if ((RealFreq > 2300) && (RealFreq <= 2500))
+    else if ((RealFreq >= 2200) && (RealFreq < 2600))
     {
       RFE_CID = 10;      // HAM2400
     }
-    else if ((RealFreq > 2500) && (RealFreq <= 3350))
+    else if ((RealFreq >= 2600) && (RealFreq < 3200))
     {
       RFE_CID = 2;      // WB_4000
     }
-    else if ((RealFreq > 3350) && (RealFreq <= 3500))
+    else if ((RealFreq >= 3200) && (RealFreq < 3500))
     {
       RFE_CID = 11;      // HAM3500
     }
