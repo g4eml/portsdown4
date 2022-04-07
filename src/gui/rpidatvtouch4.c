@@ -15009,8 +15009,9 @@ void LimeRFEInit()
   }
   
   int RFE_CID = 1;
-  int RFE_PORT = 1; // Default TX output is TX/RX Port
-//  int RFE_PORT = 2; // Alternative TX output is TX Port
+  int RFE_PORT_TX = LimeRFEPort;          //get the configured Tx port. Can be 1 or 2 or 3
+  int RFE_PORT_RX = 1;                    //Rx port can only be 1 or 3
+  int RFE_RX_ATT = LimeRFERXAtt;          //get the rx attenuator setting
   char Value[127] = "146.5";
   unsigned char RFEInfo[7];
 
@@ -15029,7 +15030,8 @@ void LimeRFEInit()
     if (RealFreq <= 30)
     {
       RFE_CID = 2;      // HAM_0030
-      RFE_PORT = 3;     // HF output Port
+      RFE_PORT_TX = 3;     // Force HF output Port  for this band
+      RFE_PORT_RX = 3;
     }
     else if ((RealFreq > 30) && (RealFreq <= 140))
     {
@@ -15085,12 +15087,14 @@ void LimeRFEInit()
     if (RealFreq < 50)
     {
       RFE_CID = 3;      // HAM_0030
-      RFE_PORT = 3;     // HF output Port
+      RFE_PORT_TX = 3;     // Force HF output Port for this band
+      RFE_PORT_RX = 3;
     }
     else if ((RealFreq >= 50) && (RealFreq < 85))
     {
       RFE_CID = 4;      // HAM_0070
-      RFE_PORT = 3;     // HF output Port
+      RFE_PORT_TX = 3;     // Force HF output Port for this band
+      RFE_PORT_RX = 3;
     }
     else if ((RealFreq >= 85) && (RealFreq < 140))
     {
@@ -15157,9 +15161,9 @@ void LimeRFEInit()
       RFE_CID = 2;      // WB_4000
     }
   }
-  RFE_Configure(rfe, RFE_CID, RFE_CID, RFE_PORT, RFE_PORT, RFE_MODE_RX, RFE_NOTCH_OFF, 0, 0, 0);
+  RFE_Configure(rfe, RFE_CID, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_MODE_RX, RFE_NOTCH_OFF, RFE_RX_ATT, 0, 0);
 
-  printf("LimeRFE Version %d Configured for freq band %d\nAnd output port %d\n", RFEHWVer, RFE_CID, RFE_PORT);
+  printf("LimeRFE Version %d Configured for freq band %d\n Tx output port %d Rx input port %d\n Rx Attenuator = %d \n", RFEHWVer, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_RX_ATT);
 }
 
 
