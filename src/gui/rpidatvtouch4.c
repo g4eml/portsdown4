@@ -15163,7 +15163,7 @@ void LimeRFEInit()
   }
   RFE_Configure(rfe, RFE_CID, RFE_CID, RFE_PORT_RX, RFE_PORT_TX, RFE_MODE_RX, RFE_NOTCH_OFF, RFE_RX_ATT, 0, 0);
 
-  printf("LimeRFE Version %d Configured for freq band %d\n Tx output port %d Rx input port %d\n Rx Attenuator = -%d dB \n", RFEHWVer, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_RX_ATT * 2);
+  printf("LimeRFE Version %d Configured for freq band %d\n Tx output port %d Rx input port %d\n Rx Attenuator = %d dB \n", RFEHWVer, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_RX_ATT * 2);
 }
 
 
