@@ -318,7 +318,7 @@ bool AwaitingContestNumberViewSeln = false;
 float LimeCalFreq = 0;  // -2 cal never, -1 = cal every time, 0 = cal next time, freq = no cal if no change
 int LimeRFEState = 0;   // 0 = disabled, 1 = enabled
 int LimeRFEPort  = 1;   // 1 = txrx, 2 = tx, 3 = 30MHz
-int LimeRFERXAtt = 0;   // 0, 2, 4, 6, 8, 10 12 or 14
+int LimeRFERXAtt = 0;   // 0-7 representing 0-14dB  
 int LimeNETMicroDet = 0;  // 0 = Not detected, 1 = detected.  Tested on entry to Lime Config menu
 rfe_dev_t* rfe = NULL;    // handle for LimeRFE
 int RFEHWVer = -1;        // hardware version
@@ -15011,10 +15011,10 @@ void LimeRFEInit()
   int RFE_CID = 1;
   int RFE_PORT_TX = LimeRFEPort;          //get the configured Tx port. Can be 1 or 2 or 3
   int RFE_PORT_RX = 1;                    //Rx port can only be 1 or 3
-  int RFE_RX_ATT = LimeRFERXAtt;          //get the rx attenuator setting
+  int RFE_RX_ATT = LimeRFERXAtt;          //get the rx attenuator setting. 0-7 representing 0-14dB
   char Value[127] = "146.5";
   unsigned char RFEInfo[7];
-
+  
   // Look up the transmit frequency frequency
   GetConfigParam(PATH_PCONFIG, "freqoutput", Value);
   float RealFreq = atof(Value);
@@ -15161,9 +15161,9 @@ void LimeRFEInit()
       RFE_CID = 2;      // WB_4000
     }
   }
-  RFE_Configure(rfe, RFE_CID, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_MODE_RX, RFE_NOTCH_OFF, RFE_RX_ATT, 0, 0);
+  RFE_Configure(rfe, RFE_CID, RFE_CID, RFE_PORT_RX, RFE_PORT_TX, RFE_MODE_RX, RFE_NOTCH_OFF, RFE_RX_ATT, 0, 0);
 
-  printf("LimeRFE Version %d Configured for freq band %d\n Tx output port %d Rx input port %d\n Rx Attenuator = %d \n", RFEHWVer, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_RX_ATT);
+  printf("LimeRFE Version %d Configured for freq band %d\n Tx output port %d Rx input port %d\n Rx Attenuator = -%d dB \n", RFEHWVer, RFE_CID, RFE_PORT_TX, RFE_PORT_RX, RFE_RX_ATT * 2);
 }
 
 
