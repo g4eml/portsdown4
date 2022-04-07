@@ -7917,6 +7917,9 @@ void ChangeBandDetails(int NoButton)
   int ExpLevel = -1;
   int ExpPorts = -1;
   int LimeGain = -1;
+  int RFEState = -1;
+  int RFEAtt = 1;
+  int RFEPort = -1;
   int PlutoLevel = 1;
   float LO = 1000001;
   char Numbers[10] ="";
@@ -8044,6 +8047,90 @@ void ChangeBandDetails(int NoButton)
   strcpy(Param, TabBand[band]);
   strcat(Param, "limegain");
   SetConfigParam(PATH_PPRESETS ,Param, KeyboardReturn);
+  
+     // Lime RFE Eanble
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerfe");
+  GetConfigParam(PATH_PPRESETS, Param, Value);
+   if (strcmp(Value, "enabled") == 0)
+  {
+    RFEState = 1;
+  }
+  else
+  {
+    RFEState = 0;
+  }
+
+  snprintf(Value, 30, "%d", RFEState);
+  RFEState = -1;
+  while ((RFEState < 0 ) || (RFEState > 1) || (strlen(KeyboardReturn) < 1))  
+  {
+    snprintf(Prompt, 63, "Lime RFE Enable for the %s Band:", TabBandLabel[band]);
+    Keyboard(Prompt, Value, 6);
+    RFEState = atof(KeyboardReturn);
+  }
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerfe");
+  if(RFEState==1)
+  {
+    strcpy(Value, "enabled");
+  }
+  else
+  {
+    strcpy(Value, "disabled");
+  }
+  SetConfigParam(PATH_PPRESETS ,Param, Value);
+  
+     // Lime RFE Tx Port
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerfeport");
+  GetConfigParam(PATH_PPRESETS, Param, Value);
+     if (strcmp(Value, "txrx") == 0)
+  {
+    RFEPort = 1;
+  }
+  else
+  {
+    RFEPort = 2;
+  }
+  snprintf(Value, 30, "%d", RFEPort);
+  RFEPort=0;
+  while ((RFEPort < 1 ) || (RFEPort > 2) || (strlen(KeyboardReturn) < 1))  
+  {
+    snprintf(Prompt, 63, "LimeRFE Tx Port for the %s Band:", TabBandLabel[band]);
+    Keyboard(Prompt, Value, 6);
+    RFEPort = atof(KeyboardReturn);
+  }
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerfeport");
+  if(RFEPort == 1)
+    {
+      strcpy(Value, "txrx");
+    }
+  else
+    {
+      strcpy(Value, "tx");
+    }  
+  SetConfigParam(PATH_PPRESETS ,Param, Value);
+  
+   // Lime RFE Attenuator Level
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerferxatt");
+  GetConfigParam(PATH_PPRESETS, Param, Value);
+  RFEAtt=atoi(Value);
+  snprintf(Value, 30, "%d", RFEAtt * 2);
+  RFEAtt=-1;
+  while ((RFEAtt < 0) || (RFEAtt > 14) || (strlen(KeyboardReturn) < 1))  
+  {
+    snprintf(Prompt, 63, "LimeRFE Rx Att for the %s Band:", TabBandLabel[band]);
+    Keyboard(Prompt, Value, 6);
+    RFEAtt = atof(KeyboardReturn);
+  }
+  strcpy(Param, TabBand[band]);
+  strcat(Param, "limerferxatt");
+  snprintf(Value, 30, "%d", RFEAtt / 2);
+  SetConfigParam(PATH_PPRESETS ,Param, Value);
+
 
   // Pluto Power
   snprintf(ActualValue, 30, "%d", TabBandPlutoLevel[band]);
@@ -8084,22 +8171,8 @@ void ChangeBandDetails(int NoButton)
   strcat(Param, "numbers");
   SetConfigParam(PATH_PPRESETS ,Param, Numbers);
   
-   // LimeRFE enable/diable
-  strcpy(Param, TabBand[CurrentBand]);
-  strcat(Param, "limerfe");
-  GetConfigParam(PATH_PPRESETS, Param, Value);
 
-  if (strcmp(Value, "enabled") == 0)
-  {
-    LimeRFEState = 1;
-    LimeRFEInit();
-  }
-  else
-  {
-    LimeRFEState = 0;
-    LimeRFEClose();
-  }
-
+ 
   strcpy(Param, "limerfe");
   SetConfigParam(PATH_PCONFIG ,Param, Value);
 
